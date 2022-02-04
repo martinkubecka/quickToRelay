@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/martinkubecka/quickToRelay/blob/master/src/resources/images/logo.png" alt="Logo">
+<img src="https://github.com/martinkubecka/quickToRelay/blob/main/images/logo.png" alt="Logo">
 </p>
 
 ---
