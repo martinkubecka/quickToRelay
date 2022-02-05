@@ -1,9 +1,9 @@
 #!/bin/bash
 ##########################################
-# Script Name	: quickToRelay
-# Description	: Automate the process of setting up a Middle/Guard Tor Relay on Debian
-# Author		: Martin Kubecka
-# Last revised 2022/02/04
+# Script Name   : quickToRelay
+# Description   : Automate the process of setting up a Middle/Guard Tor Relay on Debian
+# Author        : Martin Kubecka
+# Last revised 2022/02/05
 ##########################################
 
 # define colors
@@ -21,6 +21,9 @@ printf "${green}     |_|                                              |___/  ${c
 printf "                                                             \n"
 printf "                                    by Martin Kubecka, 2022\n"
 
+printf "${yellow}\n[~] Updating repositories ...${clear}\n"
+apt update
+
 # -------------------------------- #
 #    torrc file configuration	   #
 # -------------------------------- #
@@ -28,10 +31,10 @@ printf "${yellow}\n[+] Configuration for torrc file${clear}\n"
 read -p "Nickname : " Nickname
 read -p "Email : " ContactInfo
 read -p "ORPort : " ORPort
-printf "\n"
-printf "${yellow}[?] Would you like to configure bandwidth and accounting limits for relay traffic? [Y/n] : ${clear}"
-read Option
-if [[ ${Option} == "Y" || ${Option} == "y" ]] ; then
+#printf "\n"
+printf "\n${yellow}[?] Would you like to configure bandwidth and accounting limits for relay traffic? [Y/n] : ${clear}"
+read Option1
+if [[ ${Option1} == "Y" || ${Option1} == "y" ]] ; then
     read -p "Relay Bandwidth Rate (KB/s) : " RelayBandwidthRateSet
     read -p "Relay Bandwidth Burst (KB/s) : " RelayBandwidthBurstSet
     read -p "Accounting Max : " AccountingMaxSet
@@ -47,12 +50,32 @@ else
     AccountingStart="#AccountingStart day 00:00"
 fi
 
+# -------------------------------- #
+#   ufw firewall configuration     #
+# -------------------------------- #
+printf "\n${yellow}[?] Would you like to open ports with ufw? [Y/n] : ${clear}"
+read Option3
+if [[ ${Option3} == "Y" || ${Option3} == "y" ]] ; then
+    if ! [[ -x "$(command -v ufw)" ]] ; then
+        printf "\n${yellow}[~] Installing ufw ....${clear}\n"
+        apt install ufw -y
+    fi
+    printf "\n${yellow}[~] Allowing port 22 and chosen ORPort ....${clear}\n"
+    ufw allow ssh
+    ufw allow ${ORPort}
+    printf "\n${yellow}[~] Enabling ufw ....${clear}\n"
+    ufw --force enable
+    printf "\n${yellow}[~] Listing ufw rules ....${clear}\n"
+    ufw status
+else
+    printf "\n${red}[!] Do not forget to open your chosen ORPort in your firewall.${clear}\n"
+fi
 
 # -------------------------------- #
 #     enable automatic updates     #
 # -------------------------------- #
-printf "${yellow}\n[~] Updating repositories ...${clear}\n"
-apt update
+#printf "${yellow}\n[~] Updating repositories ...${clear}\n"
+#apt update
 
 printf "\n${yellow}[~] Enabling automatic software updates ...${clear}\n"
 apt install unattended-upgrades apt-listchanges -y
@@ -85,11 +108,9 @@ EOL
 # ---------------------------------- #
 # configure Tor project's repository #
 # ---------------------------------- #
-
 printf "\n${yellow}[~] Verifying the CPU architecture ...${clear}\n"
 # Prerequisite : verify the CPU architecture
 architecture=`dpkg --print-architecture`
-#architecture="test"
 
 if [[ "${architecture}" == "amd64" || "${architecture}" == "arm64" || "${architecture}" == "i386" ]] ; then
     printf "${green}[*] Supported architecture${clear}\n"
@@ -121,14 +142,31 @@ wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8C
 # ---------------------------------- #
 # tor and tor debian keyring install #
 # ---------------------------------- #
-
-# install tor and tor debian keyring
 printf "\n${yellow}[~] Installing Tor and Tor Debian keyring ...${clear}\n"
 apt update
 apt install tor deb.torproject.org-keyring -y
 
 # ---------------------------------- #
-#    configuration of torrc file	 #
+#     monitoring configuration       #
+# ---------------------------------- #
+printf "\n${yellow}[?] Would you like to install and configure Nyx for monitoring? [Y/n] : ${clear}"
+read Option2
+if [[ ${Option2} == "Y" || ${Option2} == "y" ]] ; then
+    read -p "Control Port : " ControlPortSet
+    ControlPort="ControlPort ${ControlPortSet}"
+    read -p "Password for Control Port access : " Password
+    HashedPassword=`tor --hash-password "${Password}" | sed -n '2p'`
+    HashedControlPassword="HashedControlPassword ${HashedPassword}"
+    # install nyx
+    printf "\n${yellow}[~] Installing nyx ....${clear}\n"
+    apt install nyx -y
+else
+    ControlPort="#ControlPort 9051"
+    HashedControlPassword="#HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053EC4C"
+fi
+
+# ---------------------------------- #
+#    configuration of torrc file     #
 # ---------------------------------- #
 printf "\n${yellow}[~] Configuring torrc file ...${clear}\n"
 cp /etc/tor/torrc /etc/tor/torrc.bak
@@ -200,6 +238,14 @@ ${AccountingStart}
 ## can be used to contact you if your relay or bridge is misconfigured or
 ## something else goes wrong.
 ContactInfo ${ContactInfo}
+
+## The port on which Tor will listen for local connections from Tor
+## controller applications, as documented in control-spec.txt.
+${ControlPort}
+## If you enable the controlport, be sure to enable one of these
+## authentication methods, to prevent attackers from accessing it.
+${HashedControlPassword}
+#CookieAuthentication 1
 
 ExitRelay   0
 EOL
