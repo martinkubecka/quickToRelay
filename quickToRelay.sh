@@ -198,7 +198,7 @@ SocksPort 0
 
 ## Uncomment this to start the process in the background... or use
 ## --runasdaemon 1 on the command line.
-#RunAsDaemon 1
+RunAsDaemon 1
 
 ################ This section is just for relays #####################
 #
