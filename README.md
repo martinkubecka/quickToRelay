@@ -31,10 +31,7 @@ Run the command bellow and follow the instructions.
 wget -q https://raw.githubusercontent.com/martinkubecka/quickToRelay/main/quickToRelay.sh ; chmod +x quickToRelay.sh ; sudo ./quickToRelay.sh
 ```
 
-<p align="center">
-<img src="https://github.com/martinkubecka/quickToRelay/blob/main/images/quickToRelay.gif" alt="Usage">
-</p>
-
+![](https://github.com/martinkubecka/quickToRelay/blob/main/images/quickToRelay.gif)
 
 ---
 ## :mega: Acknowledgements
