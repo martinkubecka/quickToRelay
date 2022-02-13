@@ -3,7 +3,7 @@
 # Script Name   : quickToRelay
 # Description   : Automate the process of setting up a Middle/Guard Tor Relay on Debian
 # Author        : Martin Kubecka
-# Last revised 2022/02/05
+# Last revised 2022/02/13
 ##########################################
 
 # define colors
@@ -31,21 +31,27 @@ printf "${yellow}\n[+] Configuration for torrc file${clear}\n"
 read -p "Nickname : " Nickname
 read -p "Email : " ContactInfo
 read -p "ORPort : " ORPort
-#printf "\n"
-printf "\n${yellow}[?] Would you like to configure bandwidth and accounting limits for relay traffic? [Y/n] : ${clear}"
+
+printf "\n${yellow}[?] Would you like to configure bandwidth limits for your relay traffic? [Y/n] : ${clear}"
 read Option1
 if [[ ${Option1} == "Y" || ${Option1} == "y" ]] ; then
     read -p "Relay Bandwidth Rate (KB/s) : " RelayBandwidthRateSet
     read -p "Relay Bandwidth Burst (KB/s) : " RelayBandwidthBurstSet
-    read -p "Accounting Max : " AccountingMaxSet
-    read -p "Accounting Start : " AccountingStartSet
     RelayBandwidthRate="RelayBandwidthRate ${RelayBandwidthRateSet}"
     RelayBandwidthBurst="RelayBandwidthBurst ${RelayBandwidthBurstSet}"
-    AccountingMax="AccountingMax ${AccountingMaxSet}"
-    AccountingStart="AccountingStart ${AccountingStartSet}"
 else
     RelayBandwidthRate="#RelayBandwidthRate 100KB"
     RelayBandwidthBurst="#RelayBandwidthBurst 200KB"
+fi
+
+printf "\n${yellow}[?] Would you like to configure accounting limits for your relay traffic? [Y/n] : ${clear}"
+read Option2
+if [[ ${Option2} == "Y" || ${Option2} == "y" ]] ; then
+    read -p "Accounting Max : " AccountingMaxSet
+    read -p "Accounting Start : " AccountingStartSet
+    AccountingMax="AccountingMax ${AccountingMaxSet}"
+    AccountingStart="AccountingStart ${AccountingStartSet}"
+else
     AccountingMax="#AccountingMax 4 GB"
     AccountingStart="#AccountingStart day 00:00"
 fi
@@ -150,8 +156,8 @@ apt install tor deb.torproject.org-keyring -y
 #     monitoring configuration       #
 # ---------------------------------- #
 printf "\n${yellow}[?] Would you like to install and configure Nyx for monitoring? [Y/n] : ${clear}"
-read Option2
-if [[ ${Option2} == "Y" || ${Option2} == "y" ]] ; then
+read Option4
+if [[ ${Option4} == "Y" || ${Option4} == "y" ]] ; then
     read -p "Control Port : " ControlPortSet
     ControlPort="ControlPort ${ControlPortSet}"
     read -p "Password for Control Port access : " Password
