@@ -3,7 +3,7 @@
 # Script Name   : quickToRelay
 # Description   : Automate the process of setting up a Middle/Guard Tor Relay on Debian
 # Author        : Martin Kubecka
-# Last revised 2022/02/13
+# Last revised 2022/03/29
 ##########################################
 
 # define colors
@@ -91,7 +91,7 @@ cp /etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-up
 echo "" > /etc/apt/apt.conf.d/50unattended-upgrades
 cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOL
 Unattended-Upgrade::Origins-Pattern {
-    "origin=Debian,codename=${distro_codename},label=Debian-Security";
+    "origin=Debian,codename=\${distro_codename},label=Debian-Security";
     "origin=TorProject";
 };
 Unattended-Upgrade::Package-Blacklist {
